@@ -116,6 +116,10 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects
             }
         }
 
+        public void ReceiveMana (ServerCharacter inflicter, int mana) {
+
+        }
+
         private void Break()
         {
             IsBroken.Value = true;

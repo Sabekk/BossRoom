@@ -8,6 +8,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects
     public class DamageReceiver : NetworkBehaviour, IDamageable
     {
         public event Action<ServerCharacter, int> DamageReceived;
+        public event Action<ServerCharacter, int> ManaReceived;
 
         public event Action<Collision> CollisionEntered;
 
@@ -19,6 +20,12 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects
             if (IsDamageable())
             {
                 DamageReceived?.Invoke(inflicter, HP);
+            }
+        }
+
+        public void ReceiveMana (ServerCharacter inflicter, int HP) {
+            if (IsDamageable ()) {
+                ManaReceived?.Invoke (inflicter, HP);
             }
         }
 

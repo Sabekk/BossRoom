@@ -56,6 +56,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
         public NetworkVariable<bool> IsStealthy { get; } = new NetworkVariable<bool>();
 
         public NetworkHealthState NetHealthState { get; private set; }
+        public NetworkManaState NetManaState { get; private set; }
 
         /// <summary>
         /// The active target of this character.
@@ -69,6 +70,14 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
         {
             get => NetHealthState.HitPoints.Value;
             private set => NetHealthState.HitPoints.Value = value;
+        }
+
+        /// <summary>
+        /// Current Mana. This value is populated at startup time from CharacterClass data.
+        /// </summary>
+        public int ManaPoints {
+            get => NetManaState.ManaPoints.Value;
+            private set => NetManaState.ManaPoints.Value = value;
         }
 
         public NetworkLifeState NetLifeState { get; private set; }
@@ -146,6 +155,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
             m_ServerActionPlayer = new ServerActionPlayer(this);
             NetLifeState = GetComponent<NetworkLifeState>();
             NetHealthState = GetComponent<NetworkHealthState>();
+            NetManaState = GetComponent<NetworkManaState>();
             m_State = GetComponent<NetworkAvatarGuidState>();
         }
 
@@ -156,6 +166,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
             {
                 NetLifeState.LifeState.OnValueChanged += OnLifeStateChanged;
                 m_DamageReceiver.DamageReceived += ReceiveHP;
+                m_DamageReceiver.ManaReceived += ReceiveMana;
                 m_DamageReceiver.CollisionEntered += CollisionEntered;
 
                 if (IsNpc)
@@ -169,6 +180,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
                     PlayAction(ref startingAction);
                 }
                 InitializeHitPoints();
+                InitializeManaPoints ();
             }
         }
 
@@ -179,6 +191,7 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
             if (m_DamageReceiver)
             {
                 m_DamageReceiver.DamageReceived -= ReceiveHP;
+                m_DamageReceiver.ManaReceived -= ReceiveMana;
                 m_DamageReceiver.CollisionEntered -= CollisionEntered;
             }
         }
@@ -252,6 +265,16 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
                         LifeState = LifeState.Fainted;
                     }
                 }
+            }
+        }
+
+        void InitializeManaPoints () {
+            ManaPoints = CharacterClass.BaseMana.Value;
+
+            if (!IsNpc) {
+                SessionPlayerData? sessionPlayerData = SessionManager<SessionPlayerData>.Instance.GetPlayerData (OwnerClientId);
+                if (sessionPlayerData is { HasCharacterSpawned: true }) 
+                    ManaPoints = sessionPlayerData.Value.CurrentHitPoints;
             }
         }
 
@@ -350,6 +373,24 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
 
                 m_ServerActionPlayer.ClearActions(false);
             }
+        }
+
+        /// <summary>
+        /// Receive an mana change from somewhere.
+        /// </summary>
+        /// <param name="inflicter">Person dishing out this mana gift. Can be null. </param>
+        /// <param name="mana">The mana to receive. Positive value is receiving mana. Negative is taking mana.  </param>
+        void ReceiveMana (ServerCharacter inflicter, int mana) {
+            //to our own effects, and modify the damage or healing as appropriate. But in this game, we just take it straight.
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // Don't apply damage if god mode is on
+            if (NetLifeState.IsGodMode.Value) {
+                return;
+            }
+#endif
+            Debug.Log("Add mana "+mana+" = "+(ManaPoints+mana)+"/"+ CharacterClass.BaseMana.Value);
+            ManaPoints = Mathf.Clamp (ManaPoints + mana, 0, CharacterClass.BaseMana.Value);
         }
 
         /// <summary>
