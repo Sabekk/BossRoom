@@ -381,15 +381,18 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects.Character
         /// <param name="inflicter">Person dishing out this mana gift. Can be null. </param>
         /// <param name="mana">The mana to receive. Positive value is receiving mana. Negative is taking mana.  </param>
         void ReceiveMana (ServerCharacter inflicter, int mana) {
-            //to our own effects, and modify the damage or healing as appropriate. But in this game, we just take it straight.
-
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            // Don't apply damage if god mode is on
+            // Don't taking mana if god mode is on
             if (NetLifeState.IsGodMode.Value) {
                 return;
             }
 #endif
-            Debug.Log("Add mana "+mana+" = "+(ManaPoints+mana)+"/"+ CharacterClass.BaseMana.Value);
+            if (mana > 0) {
+                m_ServerActionPlayer.OnGameplayActivity (Action.GameplayActivity.ManaRecovered);
+                float recoveringMod = m_ServerActionPlayer.GetBuffedValue (Action.BuffableValue.PercentManaReceived);
+                mana = (int)(mana * recoveringMod);
+            }
+
             ManaPoints = Mathf.Clamp (ManaPoints + mana, 0, CharacterClass.BaseMana.Value);
         }
 

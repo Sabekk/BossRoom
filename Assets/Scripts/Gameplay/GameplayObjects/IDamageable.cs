@@ -18,10 +18,10 @@ namespace Unity.BossRoom.Gameplay.GameplayObjects
         void ReceiveHP(ServerCharacter inflicter, int HP);
 
         /// <summary>
-        /// Receives HP damage or healing.
+        /// Receives or taking mana
         /// </summary>
-        /// <param name="inflicter">The Character responsible for the damage. May be null.</param>
-        /// <param name="mana">The damage done. Negative value is damage, positive is healing.</param>
+        /// <param name="inflicter">The Character responsible for mana gift. May be null.</param>
+        /// <param name="mana">The mana taken. Negative value is receiving, positive is taking.</param>
         void ReceiveMana (ServerCharacter inflicter, int mana);
 
         /// <summary>

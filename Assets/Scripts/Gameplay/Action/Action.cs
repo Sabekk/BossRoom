@@ -152,6 +152,7 @@ namespace Unity.BossRoom.Gameplay.Actions
             PercentHealingReceived, // unbuffed value is 1.0. Reducing to 0 would mean "no healing". 2 would mean "double healing"
             PercentDamageReceived,  // unbuffed value is 1.0. Reducing to 0 would mean "no damage". 2 would mean "double damage"
             ChanceToStunTramplers,  // unbuffed value is 0. If > 0, is the chance that someone trampling this character becomes stunned
+            PercentManaReceived  // unbuffed value is 1.0. Reducing to 0 would mean "no mana receiving". 2 would mean "double mana receiving"
         }
 
         /// <summary>
@@ -180,6 +181,7 @@ namespace Unity.BossRoom.Gameplay.Actions
                 case BuffableValue.PercentDamageReceived: return 1;
                 case BuffableValue.PercentHealingReceived: return 1;
                 case BuffableValue.ChanceToStunTramplers: return 0;
+                case BuffableValue.PercentManaReceived: return 1;
                 default: throw new System.Exception($"Unknown buff type {buffType}");
             }
         }
@@ -190,6 +192,7 @@ namespace Unity.BossRoom.Gameplay.Actions
             Healed,
             StoppedChargingUp,
             UsingAttackAction, // called immediately before we perform the attack Action
+            ManaRecovered
         }
 
         /// <summary>
